@@ -1,11 +1,14 @@
 {
     "version": 2,
-    "framework": null,
-    "functions": {
-        "app.py": {
-            "maxDuration": 10
+    "builds": [
+        {
+            "src": "app.py",
+            "use": "@vercel/python",
+            "config": {
+                "maxLambdaSize": "50mb"
+            }
         }
-    },
+    ],
     "routes": [
         {
             "src": "/(.*)",
