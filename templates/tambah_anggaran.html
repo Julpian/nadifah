@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Tambah Anggaran</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">Tambah Anggaran Baru</h1>
+        {% if error %}
+        <p class="text-red-500 mb-4">{{ error }}</p>
+        {% endif %}
+        <form method="POST" class="space-y-4">
+            <div>
+                <label class="block">Kategori:</label>
+                <select name="kategori" class="border p-2 w-full rounded" required>
+                    {% for k in kategori %}
+                    <option value="{{ k }}">{{ k }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block">Batas (Rp):</label>
+                <input type="number" name="batas" step="0.01" class="border p-2 w-full rounded" required>
+            </div>
+            <div>
+                <label class="block">Bulan:</label>
+                <select name="bulan" class="border p-2 w-full rounded" required>
+                    {% for i in range(1, 13) %}
+                    <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block">Tahun:</label>
+                <input type="number" name="tahun" value="{{ current_year }}" class="border p-2 w-full rounded" required>
+            </div>
+            <div class="flex space-x-2">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Simpan</button>
+                <a href="{{ url_for('index') }}" class="bg-gray-500 text-white px-4 py-2 rounded">Batal</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

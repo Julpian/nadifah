@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Tambah Transaksi</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">Tambah Transaksi Baru</h1>
+        {% if error %}
+        <p class="text-red-500 mb-4">{{ error }}</p>
+        {% endif %}
+        <form method="POST" class="space-y-4">
+            <div>
+                <label class="block">Deskripsi:</label>
+                <input type="text" name="deskripsi" class="border p-2 w-full rounded" required>
+            </div>
+            <div>
+                <label class="block">Jumlah (Rp):</label>
+                <input type="number" name="jumlah" step="0.01" class="border p-2 w-full rounded" required>
+            </div>
+            <div>
+                <label class="block">Tipe:</label>
+                <select name="tipe" id="tipe" class="border p-2 w-full rounded" required onchange="updateKategori()">
+                    <option value="pemasukan">Pemasukan</option>
+                    <option value="pengeluaran">Pengeluaran</option>
+                </select>
+            </div>
+            <div>
+                <label class="block">Kategori:</label>
+                <select name="kategori" id="kategori" class="border p-2 w-full rounded" required>
+                    {% for k in kategori_pemasukan %}
+                    <option value="{{ k }}" class="kategori-pemasukan">{{ k }}</option>
+                    {% endfor %}
+                    {% for k in kategori_pengeluaran %}
+                    <option value="{{ k }}" class="kategori-pengeluaran" style="display:none;">{{ k }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block">Tanggal:</label>
+                <input type="date" name="tanggal" class="border p-2 w-full rounded" required>
+            </div>
+            <div class="flex space-x-2">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Simpan</button>
+                <a href="{{ url_for('index') }}" class="bg-gray-500 text-white px-4 py-2 rounded">Batal</a>
+            </div>
+        </form>
+        <script>
+            function updateKategori() {
+                const tipe = document.getElementById('tipe').value;
+                const kategori = document.getElementById('kategori');
+                const pemasukan = document.querySelectorAll('.kategori-pemasukan');
+                const pengeluaran = document.querySelectorAll('.kategori-pengeluaran');
+                if (tipe === 'pemasukan') {
+                    pemasukan.forEach(opt => opt.style.display = '');
+                    pengeluaran.forEach(opt => opt.style.display = 'none');
+                } else {
+                    pemasukan.forEach(opt => opt.style.display = 'none');
+                    pengeluaran.forEach(opt => opt.style.display = '');
+                }
+                kategori.value = '';
+            }
+            updateKategori();
+        </script>
+    </div>
+</body>
+</html>
