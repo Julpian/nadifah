@@ -14,9 +14,5 @@
             "src": "/(.*)",
             "dest": "app.py"
         }
-    ],
-    "env": {
-        "SUPABASE_URL": "{{SUPABASE_URL}}",
-        "SUPABASE_KEY": "{{SUPABASE_KEY}}"
-    }
+    ]
 }
