@@ -3,140 +3,252 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dashboard Keuangan Pribadi</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <title>Dashboard Keuangan Modern</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
 </head>
-<body class="bg-gradient-to-r from-blue-50 to-indigo-50 min-h-screen font-sans text-gray-800">
-    <div class="container mx-auto p-6">
-        <header class="mb-8 text-center">
-            <h1 class="text-4xl font-extrabold text-indigo-700 mb-2">Dashboard Keuangan Pribadi</h1>
-            <p class="text-xl text-indigo-900">Saldo Anda: <span class="font-mono text-2xl">Rp {{ "{:,.2f}".format(saldo) }}</span></p>
+<body class="bg-slate-100 text-slate-800">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <header class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900">Dashboard Keuangan</h1>
+                <p class="text-slate-500 mt-1">Selamat datang kembali, kelola keuanganmu di sini.</p>
+            </div>
+            <form method="GET" class="flex items-end gap-3 bg-white p-3 rounded-lg shadow-sm">
+                <div>
+                    <label for="bulan" class="block text-xs font-semibold text-slate-600 mb-1">Bulan</label>
+                    <select name="bulan" id="bulan" class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                        {% for i in range(1, 13) %}
+                        <option value="{{ i }}" {% if i == bulan %}selected{% endif %}>{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="tahun" class="block text-xs font-semibold text-slate-600 mb-1">Tahun</label>
+                    <input type="number" name="tahun" id="tahun" value="{{ tahun }}" class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:ring-teal-500 focus:border-teal-500" />
+                </div>
+                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-md px-4 py-2 text-sm shadow-md transition-all duration-300">
+                    Filter
+                </button>
+            </form>
         </header>
 
-        <!-- Filter Bulan/Tahun -->
-        <form method="GET" class="mb-6 flex flex-wrap justify-center gap-4 items-end">
-            <div class="w-32">
-                <label for="bulan" class="block text-sm font-semibold mb-1">Bulan</label>
-                <select name="bulan" id="bulan" class="w-full rounded-md border border-indigo-300 px-3 py-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    {% for i in range(1, 13) %}
-                    <option value="{{ i }}" {% if i == bulan %}selected{% endif %}>{{ i }}</option>
-                    {% endfor %}
-                </select>
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h4 class="text-sm font-semibold text-slate-500">Dana Aman (Target 10jt)</h4>
+                <p class="text-3xl font-bold text-blue-600 mt-2">Rp {{ "{:,.2f}".format(dana_aman_terpenuhi) }}</p>
+                <div class="w-full bg-slate-200 rounded-full h-2 mt-2">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ [100, (dana_aman_terpenuhi / DANA_AMAN_TARGET * 100)]|min|int }}%"></div>
+                </div>
             </div>
-            <div class="w-32">
-                <label for="tahun" class="block text-sm font-semibold mb-1">Tahun</label>
-                <input type="number" name="tahun" id="tahun" value="{{ tahun }}" class="w-full rounded-md border border-indigo-300 px-3 py-2 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h4 class="text-sm font-semibold text-slate-500">Saldo Produktif</h4>
+                <p class="text-3xl font-bold text-amber-600 mt-2">Rp {{ "{:,.2f}".format(saldo_produktif) }}</p>
             </div>
-            <div>
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md px-6 py-2 shadow-md transition">Filter</button>
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h4 class="text-sm font-semibold text-slate-500">Pemasukan (Bulan Ini)</h4>
+                <p class="text-3xl font-bold text-green-500 mt-2">Rp {{ "{:,.2f}".format(pemasukan_bulan_ini) }}</p>
             </div>
-        </form>
-
-        <!-- Tombol Aksi -->
-        <div class="mb-8 flex flex-wrap justify-center gap-4">
-            <a href="{{ url_for('tambah_transaksi') }}" class="btn-primary">Tambah Transaksi</a>
-            <a href="{{ url_for('tambah_anggaran') }}" class="btn-green">Tambah Anggaran</a>
-            <a href="{{ url_for('tambah_tabungan') }}" class="btn-purple">Tambah Target Tabungan</a>
-            <a href="{{ url_for('ekspor_excel') }}" class="btn-gray">Ekspor ke Excel</a>
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h4 class="text-sm font-semibold text-slate-500">Pengeluaran (Bulan Ini)</h4>
+                <p class="text-3xl font-bold text-rose-500 mt-2">Rp {{ "{:,.2f}".format(pengeluaran_bulan_ini) }}</p>
+            </div>
+        </section>
+        
+        <div class="mb-8 flex flex-wrap justify-center items-center gap-4">
+            <a href="{{ url_for('tambah_transaksi') }}" class="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                Transaksi
+            </a>
+            <a href="{{ url_for('tambah_anggaran') }}" class="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fill-rule="evenodd" d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1zm-1 4a1 1 0 100 2h6a1 1 0 100-2H6z" clip-rule="evenodd" /></svg>
+                Anggaran
+            </a>
+            <a href="{{ url_for('tambah_tabungan') }}" class="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" /><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm3 0a1 1 0 011-1h1a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>
+                Target Tabungan
+            </a>
+            <a href="{{ url_for('atur_gaji') }}" class="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+                Atur Gaji
+            </a>
+            <div class="relative" id="export-dropdown-wrapper">
+                <button id="export-btn" class="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 border border-slate-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                    Ekspor
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                </button>
+                <div id="export-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-slate-200">
+                    <a href="{{ url_for('ekspor_excel') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">ke Excel (.xlsx)</a>
+                    <a href="{{ url_for('ekspor_csv') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">ke CSV (.csv)</a>
+                    <a href="{{ url_for('ekspor_pdf') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">ke PDF (.pdf)</a>
+                </div>
+            </div>
         </div>
 
-        <!-- Visualisasi -->
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-semibold mb-4 text-indigo-700">Proporsi Pengeluaran</h3>
-                <canvas id="pengeluaranChart" class="w-full h-60"></canvas>
-            </div>
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h3 class="text-xl font-semibold mb-4 text-indigo-700">Tren Bulanan</h3>
-                <canvas id="trenChart" class="w-full h-60"></canvas>
-            </div>
-        </section>
-
-        <!-- Status Anggaran -->
-        <section class="mb-10">
-            <h3 class="text-xl font-semibold mb-4 text-indigo-700">Status Anggaran</h3>
-            <div class="overflow-x-auto rounded-lg shadow-md bg-white">
-                <table class="min-w-full divide-y divide-gray-200 table-auto">
-                    <thead class="bg-indigo-100">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-indigo-900">Kategori</th>
-                            <th class="px-6 py-3 text-right text-sm font-semibold text-indigo-900">Batas</th>
-                            <th class="px-6 py-3 text-right text-sm font-semibold text-indigo-900">Terpakai</th>
-                            <th class="px-6 py-3 text-right text-sm font-semibold text-indigo-900">Sisa</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        {% for a in anggaran_status %}
-                        <tr class="{% if a.melebihi %}bg-red-50{% else %}hover:bg-indigo-50{% endif %} transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium">{{ a.kategori }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right">Rp {{ "{:,.2f}".format(a.batas) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right">Rp {{ "{:,.2f}".format(a.terpakai) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right">Rp {{ "{:,.2f}".format(a.sisa) }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Target Tabungan -->
-        <section class="mb-10">
-            <h3 class="text-xl font-semibold mb-4 text-indigo-700">Target Tabungan</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {% for t in tabungan %}
-                <div class="bg-white rounded-lg shadow-md p-5 flex flex-col justify-between">
-                    <div>
-                        <h4 class="font-bold text-lg mb-2 text-indigo-800">{{ t.nama }}</h4>
-                        <p><span class="font-semibold">Target:</span> Rp {{ "{:,.2f}".format(t.target) }}</p>
-                        <p><span class="font-semibold">Terkumpul:</span> Rp {{ "{:,.2f}".format(t.terkumpul) }}</p>
-                        <p><span class="font-semibold">Tenggat:</span> {{ t.tenggat }}</p>
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <section class="lg:col-span-2 flex flex-col gap-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Tren 6 Bulan Terakhir</h3>
+                            <p class="text-sm text-slate-500">Visualisasi arus kas pemasukan dan pengeluaran.</p>
+                        </div>
+                        <div class="w-full sm:w-auto grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
+                            <div>
+                                <p class="text-xs font-semibold text-green-600">PEMASUKAN</p>
+                                <p class="text-lg font-bold text-green-500">Rp {{ "{:,.2f}".format(total_tren_pemasukan) }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-rose-600">PENGELUARAN</p>
+                                <p class="text-lg font-bold text-rose-500">Rp {{ "{:,.2f}".format(total_tren_pengeluaran) }}</p>
+                            </div>
+                            <div class="col-span-2 sm:col-span-1">
+                                <p class="text-xs font-semibold text-slate-600">ARUS KAS BERSIH</p>
+                                <p class="text-lg font-bold {% if arus_kas_bersih_tren >= 0 %}text-slate-700{% else %}text-rose-500{% endif %}">
+                                    Rp {{ "{:,.2f}".format(arus_kas_bersih_tren) }}
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <form method="POST" action="{{ url_for('tambah_dana_tabungan', id=t.id) }}" class="mt-4 flex space-x-2">
-                        <input
-                            type="number"
-                            name="jumlah"
-                            step="0.01"
-                            placeholder="Tambah Dana"
-                            class="flex-grow border border-indigo-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
-                        />
-                        <button type="submit" class="btn-primary">Tambah</button>
-                    </form>
+                    <div class="w-full h-72">
+                        <canvas id="trenChart"></canvas>
+                    </div>
                 </div>
-                {% endfor %}
-            </div>
-        </section>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 text-slate-800">Proporsi Pengeluaran</h3>
+                    <div class="w-full h-72">
+                        <canvas id="pengeluaranChart"></canvas>
+                    </div>
+                </div>
+            </section>
+            <section class="lg:col-span-1 flex flex-col gap-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 text-slate-800">Status Anggaran</h3>
+                    <div class="space-y-4">
+                        {% for a in anggaran_status %}
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-slate-700">{{ a.kategori }}</span>
+                                <span class="text-sm font-medium {% if a.melebihi %}text-rose-500{% else %}text-slate-500{% endif %}">
+                                    Rp {{ "{:,.2f}".format(a.terpakai) }} / {{ "{:,.2f}".format(a.batas) }}
+                                </span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2.5">
+                                <div class="{% if a.melebihi %}bg-rose-500{% else %}bg-amber-500{% endif %} h-2.5 rounded-full" style="width: {{ [100, (a.terpakai / a.batas * 100 if a.batas > 0 else 0)] | min | int }}%"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold mb-4 text-slate-800">Target Keuangan</h3>
+                    <div class="space-y-6">
+                        {% if dana_darurat and gaji > 0 %}
+                        <div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-5">
+                            <h4 class="font-extrabold text-lg mb-2 text-amber-800 flex items-center justify-between">
+                                <span class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                    Dana Darurat
+                                </span>
+                                {% if dana_darurat.terpenuhi %}
+                                    <span class="text-xs font-bold text-green-700 bg-green-200 px-2 py-1 rounded-full">TERPENUHI</span>
+                                {% endif %}
+                            </h4>
+                            <div class="w-full bg-amber-200 rounded-full h-4 relative">
+                                <div class="absolute h-full w-0.5 bg-amber-400" style="left: 66.66%;" title="Milestone 2x Gaji"></div>
+                                <div class="bg-amber-500 h-4 rounded-full text-white text-xs flex items-center justify-center font-bold" style="width: {{ [100, (dana_darurat.terkumpul / dana_darurat.target * 100 if dana_darurat.target > 0 else 0)] | min | int }}%">
+                                    {{ [100, (dana_darurat.terkumpul / dana_darurat.target * 100 if dana_darurat.target > 0 else 0)] | min | int }}%
+                                </div>
+                            </div>
+                            <p class="text-sm text-center text-slate-600 mt-2">
+                                Terkumpul <span class="font-bold">Rp {{ "{:,.2f}".format(dana_darurat.terkumpul) }}</span> dari <span class="font-bold">Rp {{ "{:,.2f}".format(dana_darurat.target) }}</span>
+                            </p>
 
-        <!-- Riwayat Transaksi -->
+                            {% if not dana_darurat.terpenuhi %}
+                                <form method="POST" action="{{ url_for('tambah_dana_tabungan', id=dana_darurat.id) }}" class="mt-2 flex space-x-2">
+                                    <input type="number" name="jumlah" step="1000" placeholder="Tambah Dana" class="flex-grow border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-teal-500 focus:border-teal-500 shadow-sm" required />
+                                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-md px-4 py-2 text-sm shadow-sm transition-all">Tambah</button>
+                                </form>
+                            {% else %}
+                                <div class="mt-4 text-center bg-green-100 text-green-800 p-3 rounded-lg text-sm font-semibold">
+                                    🎉 Selamat! Target Dana Darurat Anda telah terpenuhi.
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% for t in tabungan %}
+                        <div class="flex flex-col gap-3 border-t border-slate-200 pt-6">
+                            <div>
+                                <h4 class="font-bold text-md text-slate-800">{{ t.nama }}</h4>
+                                <p class="text-xs text-slate-500">Tenggat: {{ t.tenggat }}</p>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-4">
+                                <div class="bg-amber-500 h-4 rounded-full text-white text-xs flex items-center justify-center font-bold" style="width: {{ [100, (t.terkumpul / t.target * 100 if t.target > 0 else 0)] | min | int }}%">
+                                    {{ [100, (t.terkumpul / t.target * 100 if t.target > 0 else 0)] | min | int }}%
+                                </div>
+                            </div>
+                            <p class="text-sm text-center text-slate-600">
+                                Terkumpul <span class="font-bold">Rp {{ "{:,.2f}".format(t.terkumpul) }}</span> dari <span class="font-bold">Rp {{ "{:,.2f}".format(t.target) }}</span>
+                            </p>
+                            <form method="POST" action="{{ url_for('tambah_dana_tabungan', id=t.id) }}" class="mt-2 flex space-x-2">
+                                <input type="number" name="jumlah" step="1000" placeholder="Tambah Dana" class="flex-grow border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-teal-500 focus:border-teal-500 shadow-sm" required />
+                                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-md px-4 py-2 text-sm shadow-sm transition-all">Tambah</button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+        </main>
+        
         <section>
-            <h3 class="text-xl font-semibold mb-4 text-indigo-700">Riwayat Transaksi</h3>
-            <div class="overflow-x-auto rounded-lg shadow-md bg-white">
-                <table class="min-w-full divide-y divide-gray-200 table-auto">
-                    <thead class="bg-indigo-100">
+            <h3 class="text-2xl font-bold mb-4 text-slate-800">Riwayat Transaksi</h3>
+            <div class="overflow-x-auto rounded-xl shadow-lg bg-white">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
                         <tr>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-indigo-900 whitespace-nowrap">Tanggal</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-indigo-900 whitespace-nowrap">Deskripsi</th>
-                            <th class="px-4 py-3 text-right text-sm font-semibold text-indigo-900 whitespace-nowrap">Jumlah</th>
-                            <th class="px-4 py-3 text-center text-sm font-semibold text-indigo-900 whitespace-nowrap">Tipe</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-indigo-900 whitespace-nowrap">Kategori</th>
-                            <th class="px-4 py-3 text-center text-sm font-semibold text-indigo-900 whitespace-nowrap">Aksi</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Tanggal</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Deskripsi</th>
+                            <th class="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Jumlah</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Tipe</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Kategori</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody class="divide-y divide-slate-100">
                         {% for t in transaksi %}
-                        <tr class="hover:bg-indigo-50 transition-colors">
-                            <td class="px-4 py-3 whitespace-nowrap">{{ t.tanggal }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap max-w-xs truncate" title="{{ t.deskripsi }}">{{ t.deskripsi }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-right">Rp {{ "{:,.2f}".format(t.jumlah) }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-center">{{ t.tipe.capitalize() }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap">{{ t.kategori }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-center">
-                                <a
-                                    href="{{ url_for('hapus_transaksi', id=t.id) }}"
-                                    class="text-red-600 hover:text-red-800 font-semibold"
-                                    onclick="return confirm('Yakin ingin menghapus transaksi ini?');"
-                                    >Hapus</a
-                                >
+                        <tr class="hover:bg-slate-50 transition-colors duration-200">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ t.tanggal }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 max-w-xs truncate" title="{{ t.deskripsi }}">{{ t.deskripsi }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold">Rp {{ "{:,.2f}".format(t.jumlah) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                {% if t.tipe == 'pemasukan' %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Pemasukan</span>
+                                {% else %}
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-rose-100 text-rose-800">Pengeluaran</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ t.kategori }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <a href="{{ url_for('hapus_transaksi', id=t.id) }}" class="text-rose-500 hover:text-rose-700 font-semibold text-sm" onclick="return confirm('Yakin ingin menghapus transaksi ini?');">
+                                    Hapus
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -147,34 +259,39 @@
     </div>
 
     <script>
-        // Chart Pengeluaran (Pie)
+        const chartFont = { family: 'Inter', size: 12 };
+
+        // Chart Pengeluaran (Doughnut)
         try {
             const ctxPie = document.getElementById('pengeluaranChart').getContext('2d');
             const chartDataRaw = {{ chart_data | safe }};
             const chartData = {
-                labels: chartDataRaw.labels || ['Makanan', 'Transportasi', 'Hiburan', 'Belanja', 'Lainnya'],
-                data: chartDataRaw.data || [0, 0, 0, 0, 0]
+                labels: chartDataRaw.labels || [],
+                data: chartDataRaw.data || []
             };
             new Chart(ctxPie, {
-                type: 'pie',
+                type: 'doughnut',
                 data: {
                     labels: chartData.labels,
                     datasets: [{
                         data: chartData.data,
-                        backgroundColor: ['#EF4444', '#3B82F6', '#F59E0B', '#10B981', '#8B5CF6']
+                        backgroundColor: ['#f59e0b', '#f43f5e', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'],
+                        borderColor: '#ffffff',
+                        borderWidth: 4,
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'top', labels: { font: { size: 14 } } },
-                        title: { display: true, text: 'Proporsi Pengeluaran per Kategori', font: { size: 18, weight: 'bold' } }
-                    }
+                        legend: { position: 'bottom', labels: { font: chartFont, usePointStyle: true, boxWidth: 8 } },
+                        title: { display: false }
+                    },
+                    cutout: '70%'
                 }
             });
         } catch (e) {
             console.error('Error rendering pie chart:', e);
-            document.getElementById('pengeluaranChart').style.display = 'none';
         }
 
         // Chart Tren Bulanan (Line)
@@ -194,57 +311,86 @@
                         {
                             label: 'Pemasukan',
                             data: trenData.pemasukan,
-                            borderColor: '#3B82F6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.3)',
+                            borderColor: '#22c55e', // green-500
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
                             fill: true,
-                            tension: 0.3
+                            tension: 0.4,
+                            pointBackgroundColor: '#22c55e',
+                            pointBorderColor: '#ffffff',
+                            pointHoverRadius: 7,
+                            pointHoverBorderWidth: 2,
+                            pointRadius: 4,
                         },
                         {
                             label: 'Pengeluaran',
                             data: trenData.pengeluaran,
-                            borderColor: '#EF4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.3)',
+                            borderColor: '#f43f5e', // rose-500
+                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
                             fill: true,
-                            tension: 0.3
+                            tension: 0.4,
+                            pointBackgroundColor: '#f43f5e',
+                            pointBorderColor: '#ffffff',
+                            pointHoverRadius: 7,
+                            pointHoverBorderWidth: 2,
+                            pointRadius: 4,
                         }
                     ]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'top', labels: { font: { size: 14 } } },
-                        title: { display: true, text: 'Tren Pemasukan & Pengeluaran', font: { size: 18, weight: 'bold' } }
+                        legend: { position: 'top', align: 'end', labels: { font: chartFont, usePointStyle: true, boxWidth: 8 } },
+                        title: { display: false }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
+                            grid: {
+                                drawBorder: false,
+                                borderDash: [5, 5], 
+                                color: '#e2e8f0' // slate-200
+                            },
                             ticks: {
-                                callback: (value) => 'Rp ' + value.toLocaleString()
+                                font: chartFont,
+                                callback: (value) => 'Rp ' + new Intl.NumberFormat('id-ID').format(value)
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                            },
+                            ticks: {
+                                font: chartFont,
                             }
                         }
-                    }
+                    },
+                    interaction: {
+                      intersect: false,
+                      mode: 'index',
+                    },
                 }
             });
         } catch (e) {
             console.error('Error rendering line chart:', e);
-            document.getElementById('trenChart').style.display = 'none';
+        }
+
+        // JAVASCRIPT UNTUK DROPDOWN EKSPOR
+        const exportBtn = document.getElementById('export-btn');
+        const exportMenu = document.getElementById('export-menu');
+        const exportWrapper = document.getElementById('export-dropdown-wrapper');
+
+        if (exportBtn) {
+            exportBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                exportMenu.classList.toggle('hidden');
+            });
+            window.addEventListener('click', (event) => {
+                if (!exportWrapper.contains(event.target)) {
+                    exportMenu.classList.add('hidden');
+                }
+            });
         }
     </script>
-
-    <style>
-        /* Custom button styles */
-        .btn-primary {
-            @apply bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md px-5 py-2 shadow-md transition;
-        }
-        .btn-green {
-            @apply bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md px-5 py-2 shadow-md transition;
-        }
-        .btn-purple {
-            @apply bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-md px-5 py-2 shadow-md transition;
-        }
-        .btn-gray {
-            @apply bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-md px-5 py-2 shadow-md transition;
-        }
-    </style>
 </body>
 </html>

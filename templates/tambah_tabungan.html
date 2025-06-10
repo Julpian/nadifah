@@ -1,34 +1,91 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <title>Tambah Target Tabungan</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Buat Target Tabungan Baru</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Tambah Target Tabungan</h1>
-        {% if error %}
-        <p class="text-red-500 mb-4">{{ error }}</p>
-        {% endif %}
-        <form method="POST" class="space-y-4">
-            <div>
-                <label class="block">Nama Target:</label>
-                <input type="text" name="nama" class="border p-2 w-full rounded" required>
+<body class="bg-slate-100 text-slate-800">
+
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+        <div class="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-2xl">
+            
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-extrabold text-slate-900">Wujudkan Impianmu!</h1>
+                <p class="text-slate-500 mt-2">Buat target tabungan baru dan mulai menabung.</p>
             </div>
-            <div>
-                <label class="block">Target (Rp):</label>
-                <input type="number" name="target" step="0.01" class="border p-2 w-full rounded" required>
-            </div>
-            <div>
-                <label class="block">Tenggat:</label>
-                <input type="date" name="tenggat" class="border p-2 w-full rounded" required>
-            </div>
-            <div class="flex space-x-2">
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Simpan</button>
-                <a href="{{ url_for('index') }}" class="bg-gray-500 text-white px-4 py-2 rounded">Batal</a>
-            </div>
-        </form>
+            
+            {% if error %}
+                <div class="bg-rose-100 border-l-4 border-rose-500 text-rose-700 p-4 mb-6 rounded-md" role="alert">
+                    <p class="font-bold">Terjadi Kesalahan</p>
+                    <p>{{ error }}</p>
+                </div>
+            {% endif %}
+
+            <form method="POST" class="space-y-6">
+                
+                <div>
+                    <label for="nama" class="block text-sm font-semibold mb-2 text-slate-700">Nama Target</label>
+                    <input type="text" id="nama" name="nama" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" placeholder="Contoh: DP Rumah Impian" required>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="target" class="block text-sm font-semibold mb-2 text-slate-700">Target Dana</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500">Rp</span>
+                            <input type="number" id="target" name="target" step="10000" class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" placeholder="0" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="tenggat" class="block text-sm font-semibold mb-2 text-slate-700">Tenggat Waktu</label>
+                        <input type="date" id="tenggat" name="tenggat" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" required>
+                    </div>
+                </div>
+                
+                <div class="pt-6 flex items-center justify-end gap-4">
+                    <a href="{{ url_for('index') }}" class="text-sm font-semibold text-slate-600 hover:text-slate-800 transition">Batal</a>
+                    <button type="submit" class="flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.428A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                        Mulai Menabung
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
+
+    <script>
+        function setupDeadline() {
+            const tenggatInput = document.getElementById('tenggat');
+            const today = new Date();
+            
+            const yearMin = today.getFullYear();
+            const monthMin = (today.getMonth() + 1).toString().padStart(2, '0');
+            const dayMin = today.getDate().toString().padStart(2, '0');
+            tenggatInput.min = `${yearMin}-${monthMin}-${dayMin}`;
+
+            today.setMonth(today.getMonth() + 1);
+            const yearDefault = today.getFullYear();
+            const monthDefault = (today.getMonth() + 1).toString().padStart(2, '0');
+            const dayDefault = today.getDate().toString().padStart(2, '0');
+            tenggatInput.value = `${yearDefault}-${monthDefault}-${dayDefault}`;
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setupDeadline();
+        });
+    </script>
 </body>
 </html>
