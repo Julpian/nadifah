@@ -44,7 +44,7 @@ except locale.Error:
         pass # Lanjutkan eksekusi dengan locale yang ada
 
 # 3. Variabel Global/Konstanta
-KATEGORI_PENGELUARAN = ['Makanan', 'Transportasi', 'Hiburan', 'Belanja', 'Alokasi Dana', 'Pembayaran Utang', 'Pemberian Piutang', 'Transfer', 'Lainnya']
+KATEGORI_PENGELUARAN = ['Makanan', 'Transportasi', 'Hiburan', 'Belanja', 'Orang Tua', 'Alokasi Dana', 'Pembayaran Utang', 'Pemberian Piutang', 'Transfer', 'Lainnya']
 KATEGORI_PEMASUKAN = ['Gaji', 'Hadiah', 'Freelance', 'Investasi', 'Penerimaan Piutang', 'Penerimaan Utang', 'Transfer', 'Lainnya']
 
 # --- Helper untuk format tanggal di Jinja ---

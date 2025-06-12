@@ -135,11 +135,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const data = {
         kategoriPengeluaran: {{ kategori_pengeluaran | tojson }},
-        kategoriPemasukan: {{ kategori_pemasukan | tojson }},
-        quickCategories: {
-            pengeluaran: ['Makanan', 'Transportasi', 'Belanja', 'Hiburan', 'Tagihan'],
-            pemasukan: ['Gaji', 'Freelance', 'Hadiah', 'Investasi']
-        }
+        kategoriPemasukan: {{ kategori_pemasukan | tojson }}
     };
 
     const el = {
@@ -205,7 +201,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderQuickCategories() {
         const tipe = getSelectedTipe();
-        const quickCats = data.quickCategories[tipe];
+        const sourceCategories = (tipe === 'pemasukan') ? data.kategoriPemasukan : data.kategoriPengeluaran;
+        
+        const quickCats = sourceCategories.filter(cat => ![
+            'Alokasi Dana', 'Pembayaran Utang', 'Pemberian Piutang', 
+            'Penerimaan Piutang', 'Penerimaan Utang', 'Transfer'
+        ].includes(cat)).slice(0, 5);
+
         el.quickCategoriesContainer.innerHTML = '';
         quickCats.forEach(cat => {
             const chip = document.createElement('button');
@@ -213,6 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
             chip.className = 'px-3 py-1 text-sm font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
             el.quickCategoriesContainer.appendChild(chip);
         });
+
         const lainnyaChip = document.createElement('button');
         lainnyaChip.type = 'button'; lainnyaChip.textContent = 'Lainnya...'; lainnyaChip.dataset.kategori = 'lainnya';
         lainnyaChip.className = 'px-3 py-1 text-sm font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
@@ -254,10 +257,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function togglePihakTerkait() {
         const selectedKategori = el.kategoriHiddenInput.value;
         const isUtangPiutang = [
-            'Pemberian Piutang', // Membuat piutang baru
-            'Penerimaan Utang',  // Membuat utang baru
-            'Penerimaan Piutang',// Menerima pembayaran piutang
-            'Pembayaran Utang'   // Membayar utang
+            'Pemberian Piutang', 'Penerimaan Utang', 
+            'Penerimaan Piutang', 'Pembayaran Utang'
         ].includes(selectedKategori);
         if (isUtangPiutang) {
             el.pihakTerkaitWrapper.classList.add('expanded');
