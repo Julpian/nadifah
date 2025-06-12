@@ -18,6 +18,42 @@
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        /* --- CSS TAMBAHAN UNTUK TABEL RESPONSIVE --- */
+        @media (max-width: 767px) {
+            /* Sembunyikan header tabel di mobile, karena label akan kita tampilkan di setiap sel */
+            .min-w-full thead {
+                display: none;
+            }
+
+            /* Ubah tampilan sel agar memiliki label di sebelah kiri */
+            .min-w-full td[data-label] {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            /* Gunakan pseudo-element ::before untuk menampilkan label dari atribut data-label */
+            .min-w-full td[data-label]::before {
+                content: attr(data-label);
+                font-weight: 600; /* font-semibold */
+                color: #475569; /* text-slate-600 */
+                margin-right: 1rem;
+                text-align: left;
+            }
+
+            /* Atur agar deskripsi tidak memenuhi baris dan tetap di kanan */
+            .min-w-full td[data-label="Deskripsi"] {
+                white-space: normal;
+                word-break: break-word;
+            }
+            
+            /* Atur agar tombol 'hapus' atau elemen aksi lainnya tetap di ujung kanan */
+            .min-w-full td[data-label="Aksi"] a,
+            .min-w-full td[data-label="Tipe"] span {
+                width: auto;
+            }
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
@@ -31,7 +67,7 @@
             <form method="GET" class="flex items-end gap-3 bg-white p-3 rounded-lg shadow-sm">
                 <div>
                     <label for="bulan" class="block text-xs font-semibold text-slate-600 mb-1">Bulan</label>
-                    <select name="bulan" id="bulan" class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                    <select name="bulan" id="bulan" class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:ring-amber-500 focus:border-amber-500">
                         {% for i in range(1, 13) %}
                         <option value="{{ i }}" {% if i == bulan %}selected{% endif %}>{{ i }}</option>
                         {% endfor %}
@@ -39,7 +75,7 @@
                 </div>
                 <div>
                     <label for="tahun" class="block text-xs font-semibold text-slate-600 mb-1">Tahun</label>
-                    <input type="number" name="tahun" id="tahun" value="{{ tahun }}" class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:ring-teal-500 focus:border-teal-500" />
+                    <input type="number" name="tahun" id="tahun" value="{{ tahun }}" class="w-full text-sm rounded-md border-slate-300 shadow-sm focus:ring-amber-500 focus:border-amber-500" />
                 </div>
                 <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-md px-4 py-2 text-sm shadow-md transition-all duration-300">
                     Filter
@@ -52,7 +88,7 @@
                 <h4 class="text-sm font-semibold text-slate-500">Dana Aman (Target 10jt)</h4>
                 <p class="text-3xl font-bold text-blue-600 mt-2">Rp {{ "{:,.2f}".format(dana_aman_terpenuhi) }}</p>
                 <div class="w-full bg-slate-200 rounded-full h-2 mt-2">
-                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ [100, (dana_aman_terpenuhi / DANA_AMAN_TARGET * 100)]|min|int }}%"></div>
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ [100, (dana_aman_terpenuhi / DANA_AMAN_TARGET * 100) if DANA_AMAN_TARGET > 0 else 0]|min|int }}%"></div>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-lg">
@@ -85,6 +121,10 @@
             <a href="{{ url_for('atur_gaji') }}" class="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 border border-slate-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
                 Atur Gaji
+            </a>
+            <a href="{{ url_for('utang_piutang') }}" class="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm1 2a1 1 0 000 2h10a1 1 0 100-2H5zm0 4a1 1 0 100 2h4a1 1 0 100-2H5z" clip-rule="evenodd" /></svg>
+                Utang/Piutang
             </a>
             <div class="relative" id="export-dropdown-wrapper">
                 <button id="export-btn" class="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 border border-slate-200">
@@ -136,7 +176,36 @@
                     </div>
                 </div>
             </section>
+            
             <section class="lg:col-span-1 flex flex-col gap-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-slate-800">Saldo Rekening</h3>
+                        <a href="{{ url_for('tambah_rekening') }}" class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded-md hover:bg-amber-200">+ Tambah</a>
+                    </div>
+                    <div class="space-y-4 max-h-60 overflow-y-auto pr-2">
+                        {% for rek in rekening_data %}
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-8 rounded-full 
+                                    {% if rek.jenis_rekening == 'Bank' %}bg-blue-500
+                                    {% elif rek.jenis_rekening == 'E-Wallet' %}bg-sky-400
+                                    {% elif rek.jenis_rekening == 'Tunai' %}bg-green-500
+                                    {% else %}bg-slate-400{% endif %}">
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-slate-800">{{ rek.nama_rekening }}</p>
+                                    <p class="text-xs text-slate-500">{{ rek.jenis_rekening }}</p>
+                                </div>
+                            </div>
+                            <p class="font-bold text-md text-slate-900">Rp {{ "{:,.2f}".format(rek.saldo_sekarang) }}</p>
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-slate-500 text-center py-4">Belum ada rekening. <br><a href="{{ url_for('tambah_rekening') }}" class="text-amber-600 font-semibold">Buat satu sekarang!</a></p>
+                        {% endfor %}
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <h3 class="text-xl font-bold mb-4 text-slate-800">Status Anggaran</h3>
                     <div class="space-y-4">
@@ -152,9 +221,29 @@
                                 <div class="{% if a.melebihi %}bg-rose-500{% else %}bg-amber-500{% endif %} h-2.5 rounded-full" style="width: {{ [100, (a.terpakai / a.batas * 100 if a.batas > 0 else 0)] | min | int }}%"></div>
                             </div>
                         </div>
+                        {% else %}
+                        <p class="text-sm text-slate-500 text-center py-4">Belum ada anggaran untuk periode ini.</p>
                         {% endfor %}
                     </div>
                 </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-slate-800">Utang & Piutang</h3>
+                        <a href="{{ url_for('utang_piutang') }}" class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded-md hover:bg-amber-200">Lihat Semua</a>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between p-3 bg-rose-50 rounded-lg">
+                            <span class="font-semibold text-rose-800">Total Utang Saya</span>
+                            <span class="font-bold text-rose-800">Rp {{ "{:,.2f}".format(utang_piutang_data.total_utang) }}</span>
+                        </div>
+                        <div class="flex justify-between p-3 bg-sky-50 rounded-lg">
+                            <span class="font-semibold text-sky-800">Total Piutang Saya</span>
+                            <span class="font-bold text-sky-800">Rp {{ "{:,.2f}".format(utang_piutang_data.total_piutang) }}</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <h3 class="text-xl font-bold mb-4 text-slate-800">Target Keuangan</h3>
                     <div class="space-y-6">
@@ -178,10 +267,9 @@
                             <p class="text-sm text-center text-slate-600 mt-2">
                                 Terkumpul <span class="font-bold">Rp {{ "{:,.2f}".format(dana_darurat.terkumpul) }}</span> dari <span class="font-bold">Rp {{ "{:,.2f}".format(dana_darurat.target) }}</span>
                             </p>
-
                             {% if not dana_darurat.terpenuhi %}
                                 <form method="POST" action="{{ url_for('tambah_dana_tabungan', id=dana_darurat.id) }}" class="mt-2 flex space-x-2">
-                                    <input type="number" name="jumlah" step="1000" placeholder="Tambah Dana" class="flex-grow border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-teal-500 focus:border-teal-500 shadow-sm" required />
+                                    <input type="number" name="jumlah" step="1000" placeholder="Tambah Dana" class="flex-grow border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-amber-500 focus:border-amber-500 shadow-sm" required />
                                     <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-md px-4 py-2 text-sm shadow-sm transition-all">Tambah</button>
                                 </form>
                             {% else %}
@@ -207,7 +295,7 @@
                                 Terkumpul <span class="font-bold">Rp {{ "{:,.2f}".format(t.terkumpul) }}</span> dari <span class="font-bold">Rp {{ "{:,.2f}".format(t.target) }}</span>
                             </p>
                             <form method="POST" action="{{ url_for('tambah_dana_tabungan', id=t.id) }}" class="mt-2 flex space-x-2">
-                                <input type="number" name="jumlah" step="1000" placeholder="Tambah Dana" class="flex-grow border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-teal-500 focus:border-teal-500 shadow-sm" required />
+                                <input type="number" name="jumlah" step="1000" placeholder="Tambah Dana" class="flex-grow border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-amber-500 focus:border-amber-500 shadow-sm" required />
                                 <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-md px-4 py-2 text-sm shadow-sm transition-all">Tambah</button>
                             </form>
                         </div>
@@ -220,7 +308,7 @@
         <section>
             <h3 class="text-2xl font-bold mb-4 text-slate-800">Riwayat Transaksi</h3>
             <div class="overflow-x-auto rounded-xl shadow-lg bg-white">
-                <table class="min-w-full divide-y divide-slate-200">
+                <table class="min-w-full">
                     <thead class="bg-slate-50">
                         <tr>
                             <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Tanggal</th>
@@ -231,21 +319,29 @@
                             <th class="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        {% for t in transaksi %}
-                        <tr class="hover:bg-slate-50 transition-colors duration-200">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ t.tanggal }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 max-w-xs truncate" title="{{ t.deskripsi }}">{{ t.deskripsi }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold">Rp {{ "{:,.2f}".format(t.jumlah) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <tbody class="divide-slate-100 md:divide-y">
+                        {% for t in transaksi[:5] %} {# <-- PERUBAHAN DI SINI #}
+                        <tr class="block md:table-row mb-4 md:mb-0 border md:border-none rounded-lg md:rounded-none shadow-md md:shadow-none hover:bg-slate-50 transition-colors duration-200">
+                            <td data-label="Tanggal" class="px-6 py-3 md:py-4 whitespace-nowrap text-sm text-slate-500 block md:table-cell text-right md:text-left border-b md:border-none">
+                                {{ t.tanggal | datetimeformat('%A, %d %B %Y - %H:%M') }}
+                            </td>
+                            <td data-label="Tanggal" class="px-6 py-3 md:py-4 whitespace-nowrap text-sm text-slate-500 ...">
+                                {{ t.tanggal | datetimeformat('%A, %d %B %Y - %H:%M') }}
+                            </td>
+                            <td data-label="Jumlah" class="px-6 py-3 md:py-4 whitespace-nowrap text-right text-sm font-semibold block md:table-cell border-b md:border-none">
+                                Rp {{ "{:,.2f}".format(t.jumlah) }}
+                            </td>
+                            <td data-label="Tipe" class="px-6 py-3 md:py-4 whitespace-nowrap text-right md:text-center block md:table-cell border-b md:border-none">
                                 {% if t.tipe == 'pemasukan' %}
                                 <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Pemasukan</span>
                                 {% else %}
                                 <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-rose-100 text-rose-800">Pengeluaran</span>
                                 {% endif %}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ t.kategori }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <td data-label="Kategori" class="px-6 py-3 md:py-4 whitespace-nowrap text-sm text-slate-500 block md:table-cell text-right md:text-left border-b md:border-none">
+                                {{ t.kategori }}
+                            </td>
+                            <td data-label="Aksi" class="px-6 py-3 md:py-4 whitespace-nowrap text-right md:text-center block md:table-cell">
                                 <a href="{{ url_for('hapus_transaksi', id=t.id) }}" class="text-rose-500 hover:text-rose-700 font-semibold text-sm" onclick="return confirm('Yakin ingin menghapus transaksi ini?');">
                                     Hapus
                                 </a>
@@ -254,6 +350,12 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+
+            <div class="mt-6 text-center">
+                <a href="{{ url_for('semua_transaksi') }}" class="inline-block bg-white hover:bg-slate-50 text-slate-700 font-semibold py-2 px-5 rounded-lg shadow-sm border border-slate-200 transition-all">
+                    Lihat Semua Riwayat
+                </a>
             </div>
         </section>
     </div>
@@ -275,7 +377,7 @@
                     labels: chartData.labels,
                     datasets: [{
                         data: chartData.data,
-                        backgroundColor: ['#f59e0b', '#f43f5e', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'],
+                        backgroundColor: ['#f59e0b', '#f43f5e', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'],
                         borderColor: '#ffffff',
                         borderWidth: 4,
                     }]
@@ -366,8 +468,8 @@
                         }
                     },
                     interaction: {
-                      intersect: false,
-                      mode: 'index',
+                        intersect: false,
+                        mode: 'index',
                     },
                 }
             });
